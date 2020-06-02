@@ -14,15 +14,13 @@ ks <- c(1,2,3,4)
 
 #### sizes
 ps <- c(5, 10, 20, 50, 100)
-ps <- 200
 ns <- c(100, 1000, 10000)
 
 #### generation methods 
 gen_methods <- c(
- # "randomDAG_gaus",
-#  "randomDAG_gaus_2"#,
-#  "randomDAG_exp",
-  "cyclic"
+  "gmat_mh_u"
+  #"randomDAG_gaus",
+  #"randomDAG_exp"
 )
 methods <- list(
   "gmat_mh_u" = gen_gmat,
@@ -46,7 +44,7 @@ for (n in ns){
           filename <- paste(gen,n, p, k, r, sep = "_")
           write.table(res$x, file = paste0(databasepath,"/", filename), 
                       row.names = FALSE, col.names = FALSE)  
-          ## save the true CPDAG
+          ## save the true graph
           saveRDS(object = res$true,  file = paste0(gtbasepath,"/cpdag_", filename, ".rds"))
           ## save the true coeff matrix
           write.table(res$coef, file = paste0(gtbasepath,"/coeff_", filename), 

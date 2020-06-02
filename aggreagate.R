@@ -1,13 +1,14 @@
 args <- commandArgs(trailingOnly = TRUE)
 out <- "TABLE.rds"
 est_methods <- c(
-  "pc-0.01" ,  
+  "pc-0.01" ,
+  "pc-0.005" ,
+  "pc-0.001" ,
   "nodag-0.3",
-  "nodag-0.2", 
+  "nodag-0.2" ,
   "nodag-0.1" ,
   "tabu",
-  "ges"#,
-#  "chowliu"
+  "ges"
 )
 if (length(args) > 0){
   out <- args[1]
@@ -26,28 +27,26 @@ M <- 20
 ks <- c(1,2,3,4)
 
 #### sizes
-ps <- c(5, 10, 20, 50, 100, 200)
+ps <- c(5, 10, 20, 50, 100)
 ns <- c(100, 1000, 10000)
 
 #### generation methods 
 gen_methods <- c(
-   "randomDAG_gaus",
-   "randomDAG_exp",
-  "randomDAG_gaus_2"
+  "randomDAG_gaus",
+  "randomDAG_exp"
 )
-
 
 TABLE <- array(dim = c(9,
                        length(gen_methods), 
-                       length(est_methods), 
+                       length(est_methods) + 1, 
                        length(ns),
                        length(ps),
                        length(ks),
                        M), 
                        dimnames = list(
-                         stat = c("shd simple", "shd", "time", "tpr", "tnr", "fpr", "f1", "fdr", "iter"),
+                         stat = c("shd-cpdag", "shd-graph", "time", "tpr", "tnr", "fpr", "f1", "fdr", "iter"),
                          gen = gen_methods,
-                         meth = est_methods,
+                         meth = c(est_methods, "empty"),
                          n = ns,
                          p = ps,
                          k = ks,
@@ -55,6 +54,8 @@ TABLE <- array(dim = c(9,
                        ))
 for (n in ns){
 for (p in ps){
+  ## make the empty graph
+  empty <- as_graphnel(make_empty_graph(p, TRUE))
   for (k in ks){
     databasepath <- paste(datapath,n, p, k, sep = "/")
     gtbasepath <- paste(gtpath,n, p, k, sep = "/")
@@ -68,9 +69,10 @@ for (p in ps){
         gtsk <- sign(gtamat + t(gtamat))
         for (est in est_methods){
           if (file.exists(paste0(resbasepath, "/", est,"_",filename, ".rds"))){
+            message(filename)
             results <- readRDS(file = paste0(resbasepath, "/", est,"_",filename, ".rds"))
-            TABLE["shd", gen, est,paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, gt)
-            TABLE["shd simple", gen, est,paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, gt)
+            TABLE["shd-cpdag", gen, est,paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, dag2cpdag(gt))
+            TABLE["shd-graph", gen, est,paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, gt)
             TABLE["time", gen, est,paste0(n), paste0(p), paste0(k), r] <- ifelse(is.null(results$time), NA, results$time)  
             amat <- as(results$graph, "graphAM")@adjMat
             sk <- sign(amat + t(amat))
@@ -91,6 +93,8 @@ for (p in ps){
             TABLE["iter", gen, est,paste0(n), paste0(p), paste0(k), r] <- ifelse(is.null(results$itr), NA, results$itr)
           }
         }
+        TABLE["shd-cpdag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, dag2cpdag(gt))
+        TABLE["shd-graph", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, gt)
       }
     }
   }

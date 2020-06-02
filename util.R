@@ -81,30 +81,26 @@ igraph.to.tikz <- function (graph, layout, file = "") {
 }
 
 gen_gmat <- function(p, k, n, r) {
-  dag <- rgraph(p, k / p, dag = TRUE, ordered = TRUE)
+  dag <- gmat::rgraph(p, k / p, dag = TRUE, ordered = TRUE)
   L <- gmat:::mh_u(1, p = p, dag = dag)[, , 1]
   Sigma <- solve(tcrossprod(L))
-  true <- dag2cpdag(as_graphnel(dag))
+  true <- as_graphnel(dag)
   X <- MASS::mvrnorm(n, rep(0, p), Sigma = Sigma)
-  name <- paste("gmat_unif", p, k, r, sep = "_")
   return(list(
     true = true,
     coef = L,
-    x = X,
-    filename = name
+    x = X
   ))
 }
 
 gen_pcalg <- function(p, k, n, r, ...) {
   gGtrue <- randomDAG(p, prob = k / p, ...)
   x <- rmvDAG(n, gGtrue)
-  true <- dag2cpdag(gGtrue)
-  name <- paste("pcdag_randomDAG", p, k, r, sep = "_")
+  true <- gGtrue
   return(list(
     true = true,
     coef = wgtMatrix(gGtrue),
-    x = x,
-    filename = name
+    x = x
   ))
 }
 
@@ -114,13 +110,11 @@ gen_pcalg_exp <- function(p, k, n, r) {
                    ncol = p,
                    data = rexp(n * p))
   x <- rmvDAG(n, gGtrue, errMat = )
-  true <- dag2cpdag(gGtrue)
-  name <- paste("pcdag_randomDAG", p, k, r, sep = "_")
+  true <- gGtrue
   return(list(
     true = true,
     coef = wgtMatrix(gGtrue),
-    x = x,
-    filename = name
+    x = x
   ))
 }
 
@@ -140,33 +134,6 @@ est_pcalg <- function(x, ...) {
   return(list(time = time, graph = pcout@graph))
 }
 
-est_fnodag <- function(x, ...) {
-  arg <- list(...)
-  lambda <- arg$lambda
-  toll <- ifelse(is.null(arg$toll), 1e-4, arg$toll)
-  maxitr <- ifelse(is.null(arg$maxitr), 1000, arg$maxitr)
-  time <-
-    system.time(
-      out <- .Fortran(
-        "FNODAG",
-        as.integer(ncol(x)),
-        as.double(cor(x)),
-        as.double(diag(ncol(x))),
-        as.double(lambda),
-        as.double(toll),
-        as.double(0.5),
-        as.integer(maxitr)
-      )
-    )[3]
-  A <- matrix(nrow = ncol(x), out[[3]])
-  g <- graph_from_adjacency_matrix(sign(abs(A)), diag = FALSE)
-  return(list(
-    time = time,
-    graph = as_graphnel(g),
-    coef = A,
-    itr = out[[7]]
-  ))
-}
 
 est_nodag <- function(x, ...) {
   arg <- list(...)
@@ -198,7 +165,7 @@ est_nodag <- function(x, ...) {
 
 est_tabu <- function(x, ...) {
   time <- system.time(bn <- tabu(x, maxp = 10, ...))[3]
-  return(list(time = time, graph  = dag2cpdag(as.graphNEL(bn))))
+  return(list(time = time, graph  = as.graphNEL(bn)))
 }
 
 est_ges <- function(x, ...) {
@@ -217,7 +184,7 @@ est_chowliu <- function(x, ...) {
   time <- system.time({
     res <- bnlearn::chow.liu(as.data.frame(x))
   })
-  return(list(time = time, graph  = dag2cpdag(as.graphNEL(res))))
+  return(list(time = time, graph  = as.graphNEL(res)))
 }
 
 est_lingam <- function(x, ...) {
@@ -227,7 +194,7 @@ est_lingam <- function(x, ...) {
   g <- as(abs(t(res$Bpruned)), "graphNEL")
   return(list(
     time = time,
-    graph  = dag2cpdag(g),
+    graph  = g,
     coef = res$Bpruned
   ))
 }
@@ -239,7 +206,8 @@ plot_select <-
            cols = NULL,
            types = NULL,
            file = "plot.pdf",
-           path = "simulations/") {
+           path = "simulations/",
+           height = 5) {
     ggplot(data[stat %in% stats & meth %in% algs,],
            aes(
              x = p,
@@ -255,7 +223,7 @@ plot_select <-
       theme_bw() +
       # scale_y_log10()+
       labs(color = "Algorithm") +
-      guides(col = guide_legend(nrow = 1)) +
+      guides(col = guide_legend(nrow = 2)) +
       scale_color_manual('', values = cols) +
       scale_linetype_manual('', values = types) +
       theme(
@@ -283,7 +251,7 @@ plot_select <-
         file = file,
         path = path,
         width = 6,
-        height = 3,
+        height = height,
         units = "in"
       )
   }
@@ -294,10 +262,11 @@ plot_density <- function(data,
                             file = "plot_density.pdf",
                             path = "simulations/",
                             cols = NULL,
-                            types = NULL) {
+                            types = NULL,
+                            height = 5) {
   ggplot(data[stat %in% stats & meth %in% algs,],
          aes(
-           x = value,
+           x = value + 1,
            group = meth,
            color = meth,
            linetype = meth
@@ -310,7 +279,7 @@ plot_density <- function(data,
     #ggtitle(title) +
     scale_x_log10()+
     labs(color = "Algorithm") +
-    guides(col = guide_legend(nrow = 1)) +
+    guides(col = guide_legend(nrow = 2)) +
     scale_color_manual("", values = cols) +
     scale_linetype_manual("", values = types) +
     theme(
@@ -338,7 +307,7 @@ plot_density <- function(data,
       file = file,
       path = path,
       width = 6,
-      height = 3,
+      height = height,
       units = "in"
     )
 }
@@ -350,7 +319,8 @@ plot_select_log <- function(data,
                             file = "plot.pdf",
                             path = "simulations/",
                             cols = NULL,
-                            types = NULL) {
+                            types = NULL,
+                            height = 5) {
   ggplot(data[stat %in% stats & meth %in% algs,],
          aes(
            x = p,
@@ -367,7 +337,7 @@ plot_select_log <- function(data,
     #ggtitle(title) +
     scale_y_log10()+
     labs(color = "Algorithm") +
-    guides(col = guide_legend(nrow = 1)) +
+    guides(col = guide_legend(nrow = 2)) +
     scale_color_manual("", values = cols) +
     scale_linetype_manual("", values = types) +
     theme(
@@ -395,7 +365,7 @@ plot_select_log <- function(data,
       file = file,
       path = path,
       width = 6,
-      height = 3,
+      height = height,
       units = "in"
     )
 }

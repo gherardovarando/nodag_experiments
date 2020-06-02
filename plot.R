@@ -6,17 +6,21 @@ if (length(args) > 0){
 library(ggplot2)
 library(data.table)
 source("util.R")
-cols <- palette.colors(6, palette = "Classic Tableau")
-types <- c(2,1,1,1,2,2)
+cols <- c(palette.colors(8, palette = "Classic Tableau"), "black")
+types <- c(rep("solid", 3), rep("dashed", 5), "dotted")
 
-names(types) <- names(cols) <-   c(
-  "pc-0.01",
-"nodag-0.3",
-"nodag-0.2", 
-"nodag-0.1",
-"tabu",
-"ges" 
+methods <- c(
+  "nodag-0.3",
+  "nodag-0.2" ,
+  "nodag-0.1" ,
+  "pc-0.01" ,
+  "pc-0.005" ,
+  "pc-0.001" ,
+  "tabu",
+  "ges",
+  "empty"
 )
+names(types) <- names(cols) <- methods
 
 TABLE <- readRDS(paste0("simulations/", tablefile))
 
@@ -28,22 +32,23 @@ data$linetype <- 2
 data[meth %in% c("nodag-0.1","nodag-0.2", "nodag-0.3"), "linetype"] <- 1
 data$linetype <- as.factor(data$linetype)
 data$p <- as.numeric(data$p)
-data[meth == "nodag-0.1" & stat == "fpr" & n == "100", ] <- NA
+data[meth == "nodag-0.1" & stat %in% c("f1", "shd-cpdag", "shd-graph", "fpr", "tpr") & n == "100", "value"] <- NA
 
-algsel <- c("pc-0.01", "nodag-0.1", "nodag-0.2", "nodag-0.3", "ges", "tabu")
-plot_select(data[p <= 100], algsel, stats = c("f1", "tpr", "fpr") ,
-                file = "plot_skeleton.pdf", cols = cols, types = types)
 
-plot_select_log(data[p <= 100], algsel, stats = c("shd", "time") ,
-            file = "plot_shd_time.pdf", cols = cols, types = types)
+plot_select(data[p <= 100], methods, stats = c("f1", "tpr", "fpr") ,
+                file = "plot_skeleton.pdf", cols = cols, types = types, height = 4)
+
+plot_select_log(data, methods, stats = c("shd-graph","shd-cpdag") ,
+            file = "plot_shd.pdf", cols = cols, types = types, height = 3.5)
+
+plot_select_log(data, methods, stats = c("time") ,
+                file = "plot_time.pdf", cols = cols, types = types, height = 2.5)
 
 plot_select(data[p <= 100], c('nodag-0.1', "nodag-0.2", "nodag-0.3"), stats = c("iter") ,
-            file = "plot_iter.pdf", cols = cols, types = types)
+            file = "plot_iter.pdf", cols = cols, types = types, height = 5)
 
 
 alldata <- as.data.table(TABLE)
-hist(alldata[stat == "shd" & meth == "pc-0.01"  & n == "1000"]$value)
-hist(alldata[stat == "shd" & meth == "nodag-0.2"  & n == "1000"]$value)
 
-plot_density(alldata[p == "100"], algsel, stats = c("f1") ,
+plot_density(alldata[p == "100" & k == "4"], methods, stats = c("shd-cpdag", "shd-graph") ,
              file = "plot_denisty.pdf", cols = cols, types = types)

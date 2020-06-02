@@ -73,5 +73,5 @@ layout <- matrix(nrow = 11, ncol = 2, byrow = TRUE,
 
 plot(g, layout = layout)
 igraph.to.tikz(g,layout = layout, file = "proteins.nodag-0.2.txt")
-
+sum(A!=0) - p
 
