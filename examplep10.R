@@ -54,3 +54,11 @@ plot(res$`0.2`$g, layout = layout)
 
 igraph.to.tikz(graph_from_adjacency_matrix(true_amat),layout = layout, file = "examplep10.true.txt")
 igraph.to.tikz(res$`0.2`$g,layout = layout, file = "examplep10.0.2.txt")
+
+Aest <-   res$`0.2`$A %*% diag(sqrt(diag(cov(X))))
+West <- t(diag(p) - diag(1/diag(Aest)) %*% Aest)
+
+W <- wgtMatrix(gGtrue)
+
+plot(W[W!=0], West[W!=0])
+abline(0,1)

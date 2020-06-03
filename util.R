@@ -109,7 +109,7 @@ gen_pcalg_exp <- function(p, k, n, r) {
   errMat <- matrix(nrow = n,
                    ncol = p,
                    data = rexp(n * p))
-  x <- rmvDAG(n, gGtrue, errMat = )
+  x <- rmvDAG(n, gGtrue, errMat = errMat)
   true <- gGtrue
   return(list(
     true = true,

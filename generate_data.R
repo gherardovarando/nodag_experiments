@@ -18,9 +18,8 @@ ns <- c(100, 1000, 10000)
 
 #### generation methods 
 gen_methods <- c(
-  "gmat_mh_u"
-  #"randomDAG_gaus",
-  #"randomDAG_exp"
+  "randomDAG_gaus",
+  "randomDAG_exp"
 )
 methods <- list(
   "gmat_mh_u" = gen_gmat,
