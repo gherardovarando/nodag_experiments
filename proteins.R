@@ -1,4 +1,3 @@
-library(igraph)
 source("util.R")
 
 filenames <- c(
@@ -46,10 +45,9 @@ message("data loaded correctly ", dim(all))
 
 ########################
 
+system.time(res <- est_nodag(all, lambda = 0.2, toll = 1e-8))
 
-system.time(res <- est_nodag(all, lambda = 0.2))
-
-A <- res$coef 
+A <- sign(abs(res$coef)) - diag(p)
 colnames(A) <- rownames(A) <- colnames(all)
 adj <- sign(abs(A)) -diag(p)
 g <- graph_from_adjacency_matrix(adjmatrix = adj)
@@ -72,6 +70,5 @@ layout <- matrix(nrow = 11, ncol = 2, byrow = TRUE,
                  ))
 
 plot(g, layout = layout)
-igraph.to.tikz(g,layout = layout, file = "proteins.nodag-0.2.txt")
-sum(A!=0) - p
+igraph.to.tikz(g, layout = layout, file = "proteins.nodag-0.2.txt")
 

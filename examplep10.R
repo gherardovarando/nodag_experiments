@@ -1,7 +1,7 @@
 library(graph)
 library(igraph)
 library(pcalg)
-dyn.load("../src/nodag.so")
+dyn.load("nodag.so")
 source("util.R")
 
 set.seed(2020)
@@ -20,8 +20,8 @@ res <- list()
 for (lambda in c(0.1,0.2,0.3)){
   out <- .Fortran("NODAG", as.integer(p), as.double(cor(X)),
                               as.double(diag(p)), as.double(lambda), 
-                              as.double(1e-5), as.double(0.5), 
-                              as.integer(1000))
+                              as.double(1e-12), as.double(0.5), 
+                              as.integer(1000), as.integer(2))
   A <- matrix(nrow =p, out[[3]])
   g <- graph_from_adjacency_matrix(sign(abs(A)), diag = FALSE)
   res[[paste0(lambda)]] <- list(
@@ -33,7 +33,7 @@ for (lambda in c(0.1,0.2,0.3)){
 }
 
 sapply(res, function(x) x$shd)
-plot(res$`0.3`$g)
+plot(res$`0.2`$g)
 
 plot(true)
 plot(as_graphnel(res$`0.2`$g))
@@ -54,11 +54,3 @@ plot(res$`0.2`$g, layout = layout)
 
 igraph.to.tikz(graph_from_adjacency_matrix(true_amat),layout = layout, file = "examplep10.true.txt")
 igraph.to.tikz(res$`0.2`$g,layout = layout, file = "examplep10.0.2.txt")
-
-Aest <-   res$`0.2`$A %*% diag(sqrt(diag(cov(X))))
-West <- t(diag(p) - diag(1/diag(Aest)) %*% Aest)
-
-W <- wgtMatrix(gGtrue)
-
-plot(W[W!=0], West[W!=0])
-abline(0,1)

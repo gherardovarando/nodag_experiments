@@ -50,5 +50,5 @@ plot_select(data[p <= 100], c('nodag-0.1', "nodag-0.2", "nodag-0.3"), stats = c(
 
 alldata <- as.data.table(TABLE)
 
-plot_density(alldata[p == "100" & k == "4"], methods, stats = c("shd-cpdag", "shd-graph") ,
+plot_density(alldata[p == "50"], methods, stats = c("shd-cpdag", "shd-graph") ,
              file = "plot_denisty.pdf", cols = cols, types = types)

@@ -1,9 +1,9 @@
-library(glasso)
 library(igraph)
 library(ggplot2)
 library(pcalg)
 library(bnlearn)
-dyn.load("../src/nodag.so")
+library(Matrix)
+dyn.load("nodag.so")
 
 igraph.to.tikz <- function (graph, layout, file = "") {
   ## Here we get the matrix layout
@@ -47,7 +47,8 @@ igraph.to.tikz <- function (graph, layout, file = "") {
   }
   mycat("\n")
   
-  adj = get.adjacency(graph)
+  adj = igraph::get.adjacency(graph)
+  print(adj)
   bidirectional = adj & t(adj)
   
   if (!is.directed(graph))

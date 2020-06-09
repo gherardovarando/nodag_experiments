@@ -40,6 +40,7 @@ est_methods <- list(
   "nodag-0.3" = function(x) est_nodag(x, lambda = 0.3),
   "nodag-0.2" = function(x) est_nodag(x, lambda = 0.2),
   "nodag-0.1" = function(x) est_nodag(x, lambda = 0.1),
+  "nodag-0.05" = function(x) est_nodag(x, lambda = 0.05),
   "tabu" = function(x) est_tabu(x),
   "ges" = function(x) est_ges(x),
   "chowliu" = function(x) est_chowliu(x),
