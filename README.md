@@ -16,7 +16,7 @@ The following packages are needed:
 * `igraph`
 * `Matrix`   
 
-Moreover `nodag.f` (v0.0.2 from 
+Moreover `nodag.f` (v0.0.1 from 
 [gherardovarando/nodag](https://github.com/gherardovarando/nodag)) 
 needs to be compiled with `R CMD SHLIB nodag.f -llapack -lblas`.
 
