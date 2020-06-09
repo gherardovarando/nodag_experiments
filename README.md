@@ -22,7 +22,7 @@ needs to be compiled with `R CMD SHLIB nodag.f -llapack -lblas`.
 
 ## Example 
 
-Run the code in `example10p.R`, the estimated graph is saved in 
+Run the code in `examplep10.R`, the estimated graph is saved in 
 tikz format. 
 
 ## Simulations 
