@@ -41,5 +41,5 @@ Run the code in `proteins.R` the estimated graph is saved in tikz format.
 ## License 
 
 `nodag.f` is available from 
-[gherardovarando/nodag](https://github.com/gherardovarando/nodag) under  
+[gherardovarando/nodag](https://github.com/gherardovarando/nodag) under
 BSD-3-Clause license. 
