@@ -13,7 +13,7 @@ if (length(args) > 0){
   torun <- args
 }
 
-source("util.R")
+source("estimate_methods.R")
 
 datapath <- "simulations/data"
 gtpath <- "simulations/gt"

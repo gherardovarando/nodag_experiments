@@ -1,4 +1,4 @@
-source("util.R")
+source("generate_methods.R")
 ## make dir
 datapath <- "simulations/data"
 gtpath <- "simulations/gt"
@@ -21,12 +21,6 @@ gen_methods <- c(
   "randomDAG_gaus",
   "randomDAG_exp"
 )
-methods <- list(
-  "gmat_mh_u" = gen_gmat,
-  "randomDAG_gaus" = gen_pcalg,
-  "randomDAG_gaus_2" = function(p,k,n,r) gen_pcalg(p,k,n,r,lB=-1, uB = 1),
-  "randomDAG_exp" = gen_pcalg_exp
-)
 
 for (n in ns){
   for (p in ps){
@@ -44,7 +38,7 @@ for (n in ns){
           write.table(res$x, file = paste0(databasepath,"/", filename), 
                       row.names = FALSE, col.names = FALSE)  
           ## save the true graph
-          saveRDS(object = res$true,  file = paste0(gtbasepath,"/cpdag_", filename, ".rds"))
+          saveRDS(object = res$true,  file = paste0(gtbasepath,"/dag_", filename, ".rds"))
           ## save the true coeff matrix
           write.table(res$coef, file = paste0(gtbasepath,"/coeff_", filename), 
                       row.names = FALSE, col.names = FALSE)  
@@ -53,4 +47,5 @@ for (n in ns){
     }
   }
 }
+
 

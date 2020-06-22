@@ -17,7 +17,9 @@ if (length(args) > 1){
   est_methods <- args[-1]
 }
 
-source("util.R")
+library(pcalg)
+library(Matrix)
+library(igraph)
 
 datapath <- "simulations/data"
 gtpath <- "simulations/gt"
@@ -44,7 +46,7 @@ TABLE <- array(dim = c(9,
                        length(ks),
                        M), 
                        dimnames = list(
-                         stat = c("shd-cpdag", "shd-graph", "time", "tpr", "tnr", "fpr", "f1", "fdr", "iter"),
+                         stat = c("shd-dag", "shd-cpdag", "time", "tpr", "tnr", "fpr", "f1", "fdr", "iter"),
                          gen = gen_methods,
                          meth = c(est_methods, "empty"),
                          n = ns,
@@ -63,7 +65,7 @@ for (p in ps){
     for (r in 1:M){
       for (gen in gen_methods){
         filename <- paste(gen,n, p, k, r, sep = "_")
-        gt <- readRDS(file = paste0(gtbasepath,"/cpdag_", filename, ".rds"))
+        gt <- readRDS(file = paste0(gtbasepath,"/dag_", filename, ".rds"))
         gt_cf <- read.table(file = paste0(gtbasepath,"/coeff_", filename))
         gtamat <- as(gt, "graphAM")@adjMat
         gtsk <- sign(gtamat + t(gtamat))
@@ -71,8 +73,8 @@ for (p in ps){
           if (file.exists(paste0(resbasepath, "/", est,"_",filename, ".rds"))){
             message(filename)
             results <- readRDS(file = paste0(resbasepath, "/", est,"_",filename, ".rds"))
-            TABLE["shd-cpdag", gen, est,paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, dag2cpdag(gt))
-            TABLE["shd-graph", gen, est,paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, gt)
+            TABLE["shd-dag", gen, est,paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, gt)
+            TABLE["shd-cpdag", gen, est,paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, pcalg::dag2cpdag(gt))
             TABLE["time", gen, est,paste0(n), paste0(p), paste0(k), r] <- ifelse(is.null(results$time), NA, results$time)  
             amat <- as(results$graph, "graphAM")@adjMat
             sk <- sign(amat + t(amat))
@@ -93,8 +95,9 @@ for (p in ps){
             TABLE["iter", gen, est,paste0(n), paste0(p), paste0(k), r] <- ifelse(is.null(results$itr), NA, results$itr)
           }
         }
-        TABLE["shd-cpdag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, dag2cpdag(gt))
-        TABLE["shd-graph", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, gt)
+        TABLE["shd-cpdag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, gt)
+        TABLE["shd-dag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, gt)
+        
       }
     }
   }

@@ -1,9 +1,7 @@
 library(igraph)
 library(ggplot2)
-library(pcalg)
-library(bnlearn)
 library(Matrix)
-dyn.load("nodag.so")
+
 
 igraph.to.tikz <- function (graph, layout, file = "") {
   ## Here we get the matrix layout
@@ -81,124 +79,6 @@ igraph.to.tikz <- function (graph, layout, file = "") {
   mycat("\\end{tikzpicture}\n")
 }
 
-gen_gmat <- function(p, k, n, r) {
-  dag <- gmat::rgraph(p, k / p, dag = TRUE, ordered = TRUE)
-  L <- gmat:::mh_u(1, p = p, dag = dag)[, , 1]
-  Sigma <- solve(tcrossprod(L))
-  true <- as_graphnel(dag)
-  X <- MASS::mvrnorm(n, rep(0, p), Sigma = Sigma)
-  return(list(
-    true = true,
-    coef = L,
-    x = X
-  ))
-}
-
-gen_pcalg <- function(p, k, n, r, ...) {
-  gGtrue <- randomDAG(p, prob = k / p, ...)
-  x <- rmvDAG(n, gGtrue)
-  true <- gGtrue
-  return(list(
-    true = true,
-    coef = wgtMatrix(gGtrue),
-    x = x
-  ))
-}
-
-gen_pcalg_exp <- function(p, k, n, r) {
-  gGtrue <- randomDAG(p, prob = k / p)
-  errMat <- matrix(nrow = n,
-                   ncol = p,
-                   data = rexp(n * p))
-  x <- rmvDAG(n, gGtrue, errMat = errMat)
-  true <- gGtrue
-  return(list(
-    true = true,
-    coef = wgtMatrix(gGtrue),
-    x = x
-  ))
-}
-
-############# estimate func
-
-est_pcalg <- function(x, ...) {
-  time <- system.time({
-    suffStat <- list(C = cor(x), n = nrow(x))
-    pcout <-
-      pc(suffStat = suffStat,
-         indepTest = gaussCItest,
-         p = ncol(x),
-         maj.rule = TRUE,
-         solve.confl = TRUE,
-         ...)
-  })[3]
-  return(list(time = time, graph = pcout@graph))
-}
-
-
-est_nodag <- function(x, ...) {
-  arg <- list(...)
-  lambda <- arg$lambda
-  toll <- ifelse(is.null(arg$toll), 1e-4, arg$toll)
-  maxitr <- ifelse(is.null(arg$maxitr), 1000, arg$maxitr)
-  time <-
-    system.time(
-      out <- .Fortran(
-        "NODAG",
-        as.integer(ncol(x)),
-        as.double(cor(x)),
-        as.double(diag(ncol(x))),
-        as.double(lambda),
-        as.double(toll),
-        as.double(0.5),
-        as.integer(maxitr)
-      )
-    )[3]
-  A <- matrix(nrow = ncol(x), out[[3]])
-  g <- graph_from_adjacency_matrix(sign(abs(A)), diag = FALSE)
-  return(list(
-    time = time,
-    graph = as_graphnel(g),
-    coef = A,
-    itr = out[[7]]
-  ))
-}
-
-est_tabu <- function(x, ...) {
-  time <- system.time(bn <- tabu(x, maxp = 10, ...))[3]
-  return(list(time = time, graph  = as.graphNEL(bn)))
-}
-
-est_ges <- function(x, ...) {
-  time <- system.time({
-    score <- new("GaussL0penObsScore", x)
-    ges.fit <- ges(score)
-  })[3]
-  return(list(
-    time = time,
-    graph = as(ges.fit$essgraph, "graphNEL")
-  ))
-}
-
-
-est_chowliu <- function(x, ...) {
-  time <- system.time({
-    res <- bnlearn::chow.liu(as.data.frame(x))
-  })
-  return(list(time = time, graph  = as.graphNEL(res)))
-}
-
-est_lingam <- function(x, ...) {
-  time <- system.time({
-    res <- pcalg::lingam(x)
-  })
-  g <- as(abs(t(res$Bpruned)), "graphNEL")
-  return(list(
-    time = time,
-    graph  = g,
-    coef = res$Bpruned
-  ))
-}
 
 plot_select <-
   function(data,

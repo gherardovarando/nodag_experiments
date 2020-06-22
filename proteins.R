@@ -1,4 +1,5 @@
 source("util.R")
+dyn.load("nodag.so")
 
 filenames <- c(
   "cd3cd28",
@@ -44,10 +45,24 @@ if (length(datalist) > 1){
 message("data loaded correctly ", dim(all))
 
 ########################
+lambda <- 0.2
+toll <- 1e-6
+maxitr <- 1000
 
-system.time(res <- est_nodag(all, lambda = 0.2, toll = 1e-8))
+system.time(
+      out <- .Fortran(
+        "NODAG",
+        as.integer(ncol(all)),
+        as.double(cor(all)),
+        as.double(diag(ncol(all))),
+        as.double(lambda),
+        as.double(toll),
+        as.double(0.5),
+        as.integer(maxitr)
+      )
+    )
 
-A <- sign(abs(res$coef)) - diag(p)
+A <- matrix(nrow = ncol(all), out[[3]])
 colnames(A) <- rownames(A) <- colnames(all)
 adj <- sign(abs(A)) -diag(p)
 g <- graph_from_adjacency_matrix(adjmatrix = adj)
