@@ -1,6 +1,8 @@
 args <- commandArgs(trailingOnly = TRUE)
 out <- "TABLE.rds"
 est_methods <- c(
+  "pc-0.1" ,
+  "pc-0.05" ,
   "pc-0.01" ,
   "pc-0.005" ,
   "pc-0.001" ,
@@ -34,8 +36,9 @@ ns <- c(100, 1000, 10000)
 
 #### generation methods 
 gen_methods <- c(
-  "randomDAG_gaus",
-  "randomDAG_exp"
+  "randomDAG_gaus"
+  #"randomDAG_exp"
+  #"randomDAG_gaus_2"
 )
 
 TABLE <- array(dim = c(9,

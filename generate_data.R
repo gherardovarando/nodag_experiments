@@ -18,8 +18,9 @@ ns <- c(100, 1000, 10000)
 
 #### generation methods 
 gen_methods <- c(
-  "randomDAG_gaus",
-  "randomDAG_exp"
+  #"randomDAG_gaus",
+  #"randomDAG_exp",
+  "randomDAG_gaus_2"
 )
 
 for (n in ns){

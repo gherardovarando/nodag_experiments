@@ -1,5 +1,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 torun <- c(
+  "pc-0.1" ,
+  "pc-0.05" ,
   "pc-0.01" ,
   "pc-0.005" ,
   "pc-0.001" ,
@@ -29,11 +31,14 @@ ns <- c(100, 1000, 10000)
 
 #### generation methods 
 gen_methods <- c(
-  "randomDAG_gaus",
-  "randomDAG_exp"
+  #"randomDAG_gaus",
+  #"randomDAG_exp",
+  "randomDAG_gaus_2"
 )
 
 est_methods <- list(
+  "pc-0.1" = function(x) est_pcalg(x, alpha = 0.1),
+  "pc-0.05" = function(x) est_pcalg(x, alpha = 0.05),
   "pc-0.01" = function(x) est_pcalg(x, alpha = 0.01),
   "pc-0.005" = function(x) est_pcalg(x, alpha = 0.005),
   "pc-0.001" = function(x) est_pcalg(x, alpha = 0.001),
