@@ -82,8 +82,8 @@ TABLE <- array(dim = c(15,
                        ))
 for (n in ns){
 for (p in ps){
-  ## make the empty graph
-  empty <- as_graphnel(make_empty_graph(p, TRUE))
+  ## make the empty graph amat
+  empty <- matrix(nrow = p, ncol = p, 0)
   for (k in ks){
     databasepath <- paste(datapath,n, p, k, sep = "/")
     gtbasepath <- paste(gtpath,n, p, k, sep = "/")
