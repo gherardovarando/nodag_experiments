@@ -1,8 +1,8 @@
 args <- commandArgs(trailingOnly = TRUE)
 out <- "TABLE.rds"
 est_methods <- c(
-  "pc-0.1" ,
-  "pc-0.05" ,
+  #"pc-0.1" ,
+  #"pc-0.05" ,
   "pc-0.01" ,
   "pc-0.005" ,
   "pc-0.001" ,
@@ -22,6 +22,24 @@ if (length(args) > 1){
 library(pcalg)
 library(Matrix)
 library(igraph)
+
+# copied from the pcalg code
+myshd <- function(m1,m2){
+  shd <- 0
+  s1 <- m1 + t(m1)
+  s2 <- m2 + t(m2)
+  s1[s1 == 2] <- 1
+  s2[s2 == 2] <- 1
+  ds <- s1 - s2
+  ind <- which(ds > 0)
+  m1[ind] <- 0
+  shd <- shd + length(ind)/2
+  ind <- which(ds < 0)
+  m1[ind] <- m2[ind]
+  shd <- shd + length(ind)/2
+  d <- abs(m1 - m2)
+  shd + sum((d + t(d)) > 0)/2
+}
 
 datapath <- "simulations/data"
 gtpath <- "simulations/gt"
@@ -88,9 +106,10 @@ for (p in ps){
             ix <- sapply(vn, function(x) which(x == colnames(amat))) 
             amat <- amat[ix,ix] ### reorder amat as gtamat
             TABLE["time", gen, est, paste0(n), paste0(p), paste0(k), r] <- ifelse(is.null(results$time), NA, results$time)  
-            #TABLE["sid", gen, est, paste0(n), paste0(p), paste0(k), r] <- SID::structIntervDist(gtamat, amat)$sid
-            #TABLE["sid-lower", gen, est, paste0(n), paste0(p), paste0(k), r] <- SID::structIntervDist(gtamat, amat)$sidLowerBound
-            #TABLE["sid-upper", gen, est, paste0(n), paste0(p), paste0(k), r] <- SID::structIntervDist(gtamat, amat)$sidUpperBound
+            tmp <- SID::structIntervDist(gtamat, amat)
+            TABLE["sid", gen, est, paste0(n), paste0(p), paste0(k), r] <- tmp$sid
+            TABLE["sid-lower", gen, est, paste0(n), paste0(p), paste0(k), r] <- tmp$sidLowerBound
+            TABLE["sid-upper", gen, est, paste0(n), paste0(p), paste0(k), r] <- tmp$sidUpperBound
             TABLE["is-dag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'dag')
             TABLE["is-cpdag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'cpdag')
             TABLE["is-pdag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'pdag')
@@ -109,15 +128,13 @@ for (p in ps){
             TABLE["fpr", gen, est,paste0(n), paste0(p), paste0(k), r] <- fpr
             TABLE["fdr", gen, est,paste0(n), paste0(p), paste0(k), r] <- fdr
             TABLE["f1", gen, est,paste0(n), paste0(p), paste0(k), r] <- f1
-            #TABLE["shd-dag", gen, est, paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, gt)
-            #TABLE["shd-cpdag", gen, est, paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, pcalg::dag2cpdag(gt))
+            TABLE["shd-dag", gen, est, paste0(n), paste0(p), paste0(k), r] <- myshd(amat, gtamat)
+            TABLE["shd-cpdag", gen, est, paste0(n), paste0(p), paste0(k), r] <- myshd(amat, gtamatcpdag)
             TABLE["iter", gen, est,paste0(n), paste0(p), paste0(k), r] <- ifelse(is.null(results$itr), NA, results$itr)
-          }else{
-            message("*")
           }
         }
-        #TABLE["shd-cpdag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, gt)
-        #TABLE["shd-dag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, gt)
+        TABLE["shd-cpdag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- myshd(empty, gtamatcpdag)
+        TABLE["shd-dag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- myshd(empty, gtamat)
       }
     }
   }
