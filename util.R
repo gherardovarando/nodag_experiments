@@ -3,6 +3,7 @@ library(ggplot2)
 library(Matrix)
 
 
+
 igraph.to.tikz <- function (graph, layout, file = "") {
   ## Here we get the matrix layout
   if ("function" %in% class(layout))

@@ -1,7 +1,7 @@
 args <- commandArgs(trailingOnly = TRUE)
 torun <- c(
-  "pc-0.1" ,
-  "pc-0.05" ,
+  #"pc-0.1" ,
+  #"pc-0.05" ,
   "pc-0.01" ,
   "pc-0.005" ,
   "pc-0.001" ,
@@ -27,12 +27,14 @@ ks <- c(1,2,3,4)
 
 #### sizes
 ps <- c(5, 10, 20, 50, 100)
-ns <- c(100, 1000, 10000)
+ns <- c(100, 200, 500, 1000)
 
 #### generation methods 
 gen_methods <- c(
-  #"randomDAG_gaus",
-  #"randomDAG_exp",
+  "gmat_mh_u",
+  "randomDAG_gaus",
+  "randomDAG_exp",
+  "randomDAG_gumb",
   "randomDAG_gaus_2"
 )
 
@@ -62,7 +64,7 @@ for (n in ns){
       for (r in 1:M){
         for (gen in gen_methods){
           filename <- paste(gen,n, p, k, r, sep = "_")
-          x <- read.table(file = paste0(databasepath,"/", filename),header = FALSE)  
+          x <- read.table(file = paste0(databasepath,"/", filename),header = TRUE)  
           for (est in torun){
             alg <- est_methods[[est]] 
             results <- alg(x)

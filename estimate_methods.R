@@ -11,9 +11,10 @@ est_pcalg <- function(x, ...) {
     pcout <-
       pc(suffStat = suffStat,
          indepTest = gaussCItest,
-         p = ncol(x),
+         #p = ncol(x),
          maj.rule = TRUE,
          solve.confl = TRUE,
+         labels = colnames(x),
          ...)
   })[3]
   return(list(time = time, graph = pcout@graph))
@@ -23,8 +24,8 @@ est_pcalg <- function(x, ...) {
 est_nodag <- function(x, ...) {
   arg <- list(...)
   lambda <- arg$lambda
-  toll <- ifelse(is.null(arg$toll), 1e-4, arg$toll)
-  maxitr <- ifelse(is.null(arg$maxitr), 1000, arg$maxitr)
+  toll <- ifelse(is.null(arg$toll), 1e-3, arg$toll)
+  maxitr <- ifelse(is.null(arg$maxitr), 100, arg$maxitr)
   time <-
     system.time(
       out <- .Fortran(
@@ -38,7 +39,7 @@ est_nodag <- function(x, ...) {
         as.integer(maxitr)
       )
     )[3]
-  A <- matrix(nrow = ncol(x), out[[3]])
+  A <- matrix(nrow = ncol(x), out[[3]], dimnames = list(colnames(x), colnames(x)))
   g <- graph_from_adjacency_matrix(sign(abs(A)), diag = FALSE)
   return(list(
     time = time,

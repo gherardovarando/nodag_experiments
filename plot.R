@@ -4,9 +4,10 @@ if (length(args) > 0){
   tablefile <- args[1]
 }
 library(ggplot2)
+library(RColorBrewer)
 library(data.table)
 source("util.R")
-cols <- c(palette.colors(8, palette = "Classic Tableau"), "black")
+cols <- c(brewer.pal(n = 8, name = "Set2"), "black")
 types <- c(rep("solid", 3), rep("dashed", 5), "dotted")
 
 methods <- c(

@@ -5,8 +5,6 @@ gtpath <- "simulations/gt"
 dir.create(datapath, recursive = TRUE, showWarnings = FALSE)
 dir.create(gtpath, recursive = TRUE, showWarnings = FALSE)
 
-## for replication
-set.seed(2020)
 
 ## number of replicates
 M <- 20
@@ -14,12 +12,14 @@ ks <- c(1,2,3,4)
 
 #### sizes
 ps <- c(5, 10, 20, 50, 100)
-ns <- c(100, 1000, 10000)
+ns <- c(100, 200, 500, 1000)
 
 #### generation methods 
 gen_methods <- c(
-  #"randomDAG_gaus",
-  #"randomDAG_exp",
+  "gmat_mh_u", 
+  "randomDAG_gaus",
+  "randomDAG_exp",
+  "randomDAG_gumb",
   "randomDAG_gaus_2"
 )
 
@@ -37,7 +37,7 @@ for (n in ns){
           res <- methods[[gen]](p, k, n, r)
           filename <- paste(gen,n, p, k, r, sep = "_")
           write.table(res$x, file = paste0(databasepath,"/", filename), 
-                      row.names = FALSE, col.names = FALSE)  
+                      row.names = FALSE, col.names = TRUE)  
           ## save the true graph
           saveRDS(object = res$true,  file = paste0(gtbasepath,"/dag_", filename, ".rds"))
           ## save the true coeff matrix

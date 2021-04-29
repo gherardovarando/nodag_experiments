@@ -31,17 +31,19 @@ M <- 20
 ks <- c(1,2,3,4)
 
 #### sizes
-ps <- c(5, 10, 20, 50, 100)
-ns <- c(100, 1000, 10000)
+ps <- c(5, 10, 20, 50, 100) 
+ns <- c(100, 200, 500, 1000)
 
 #### generation methods 
 gen_methods <- c(
-  "randomDAG_gaus"
-  #"randomDAG_exp"
-  #"randomDAG_gaus_2"
+  "gmat_mh_u",
+  "randomDAG_gaus",
+  "randomDAG_exp",
+  "randomDAG_gumb",
+  "randomDAG_gaus_2"
 )
 
-TABLE <- array(dim = c(9,
+TABLE <- array(dim = c(15,
                        length(gen_methods), 
                        length(est_methods) + 1, 
                        length(ns),
@@ -49,7 +51,10 @@ TABLE <- array(dim = c(9,
                        length(ks),
                        M), 
                        dimnames = list(
-                         stat = c("shd-dag", "shd-cpdag", "time", "tpr", "tnr", "fpr", "f1", "fdr", "iter"),
+                         stat = c("sid", "sid-lower", "sid-upper", 
+				  "is-dag", "is-cpdag", "is-pdag", 
+				  "shd-dag", "shd-cpdag", "time", "tpr", "tnr", "fpr", 
+				  "f1", "fdr", "iter"),
                          gen = gen_methods,
                          meth = c(est_methods, "empty"),
                          n = ns,
@@ -71,15 +76,24 @@ for (p in ps){
         gt <- readRDS(file = paste0(gtbasepath,"/dag_", filename, ".rds"))
         gt_cf <- read.table(file = paste0(gtbasepath,"/coeff_", filename))
         gtamat <- as(gt, "graphAM")@adjMat
+        gtcpdag <- pcalg::dag2cpdag(gt)
+        gtamatcpdag <- as(gtcpdag, "graphAM")@adjMat
+        vn <- colnames(gtamat)
         gtsk <- sign(gtamat + t(gtamat))
         for (est in est_methods){
           if (file.exists(paste0(resbasepath, "/", est,"_",filename, ".rds"))){
             message(filename)
             results <- readRDS(file = paste0(resbasepath, "/", est,"_",filename, ".rds"))
-            TABLE["shd-dag", gen, est,paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, gt)
-            TABLE["shd-cpdag", gen, est,paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, pcalg::dag2cpdag(gt))
-            TABLE["time", gen, est,paste0(n), paste0(p), paste0(k), r] <- ifelse(is.null(results$time), NA, results$time)  
             amat <- as(results$graph, "graphAM")@adjMat
+            ix <- sapply(vn, function(x) which(x == colnames(amat))) 
+            amat <- amat[ix,ix] ### reorder amat as gtamat
+            TABLE["time", gen, est, paste0(n), paste0(p), paste0(k), r] <- ifelse(is.null(results$time), NA, results$time)  
+            #TABLE["sid", gen, est, paste0(n), paste0(p), paste0(k), r] <- SID::structIntervDist(gtamat, amat)$sid
+            #TABLE["sid-lower", gen, est, paste0(n), paste0(p), paste0(k), r] <- SID::structIntervDist(gtamat, amat)$sidLowerBound
+            #TABLE["sid-upper", gen, est, paste0(n), paste0(p), paste0(k), r] <- SID::structIntervDist(gtamat, amat)$sidUpperBound
+            TABLE["is-dag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'dag')
+            TABLE["is-cpdag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'cpdag')
+            TABLE["is-pdag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'pdag')
             sk <- sign(amat + t(amat))
             tpr <- sum(sk!=0 & gtsk!=0) / sum(gtsk!=0)
             tnr <- sum(sk==0 & gtsk==0) / sum(gtsk==0)
@@ -95,16 +109,19 @@ for (p in ps){
             TABLE["fpr", gen, est,paste0(n), paste0(p), paste0(k), r] <- fpr
             TABLE["fdr", gen, est,paste0(n), paste0(p), paste0(k), r] <- fdr
             TABLE["f1", gen, est,paste0(n), paste0(p), paste0(k), r] <- f1
+            #TABLE["shd-dag", gen, est, paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, gt)
+            #TABLE["shd-cpdag", gen, est, paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(results$graph, pcalg::dag2cpdag(gt))
             TABLE["iter", gen, est,paste0(n), paste0(p), paste0(k), r] <- ifelse(is.null(results$itr), NA, results$itr)
+          }else{
+            message("*")
           }
         }
-        TABLE["shd-cpdag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, gt)
-        TABLE["shd-dag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, gt)
-        
+        #TABLE["shd-cpdag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, gt)
+        #TABLE["shd-dag", gen, "empty",paste0(n), paste0(p), paste0(k), r] <- pcalg::shd(empty, gt)
       }
     }
   }
 }
 }
-
+message("saving table")
 saveRDS(TABLE, file = paste0("simulations/", out))
