@@ -9,7 +9,11 @@ torun <- c(
   "nodag-0.2" ,
   "nodag-0.1" ,
   "tabu",
-  "ges"
+  "ges",
+  "notears-0",
+  "notears-0.1",
+  "notears-0.2",
+  "notears-0.3"
 )
 if (length(args) > 0){
   torun <- args
@@ -34,8 +38,7 @@ gen_methods <- c(
   "gmat_mh_u",
   "randomDAG_gaus",
   "randomDAG_exp",
-  "randomDAG_gumb",
-  "randomDAG_gaus_2"
+  "randomDAG_gumb"
 )
 
 est_methods <- list(
@@ -48,6 +51,10 @@ est_methods <- list(
   "nodag-0.2" = function(x) est_nodag(x, lambda = 0.2),
   "nodag-0.1" = function(x) est_nodag(x, lambda = 0.1),
   "nodag-0.05" = function(x) est_nodag(x, lambda = 0.05),
+  "notears-0.3" = function(x) est_notears(x, lambda = 0.3),
+  "notears-0.2" = function(x) est_notears(x, lambda = 0.2),
+  "notears-0.1" = function(x) est_notears(x, lambda = 0.1),
+  "notears-0" = function(x) est_notears(x, lambda = 0),
   "tabu" = function(x) est_tabu(x),
   "ges" = function(x) est_ges(x),
   "chowliu" = function(x) est_chowliu(x),

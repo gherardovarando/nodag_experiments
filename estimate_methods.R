@@ -3,6 +3,9 @@ library(igraph)
 library(Matrix)
 library(pcalg)
 library(bnlearn)
+library(reticulate)
+reticulate::use_python("/usr/lib/python3")
+notears <- import("notears")
 dyn.load("nodag.so")
 
 est_pcalg <- function(x, ...) {
@@ -82,5 +85,23 @@ est_lingam <- function(x, ...) {
     time = time,
     graph  = g,
     coef = res$Bpruned
+  ))
+}
+
+est_notears <- function(x,  ...) {
+  arg <- list(...)
+  lambda <- arg$lambda
+  w_threshold <- ifelse(is.null(arg$w_threshold), 0.3, arg$w_threshold)
+  max_iter <- ifelse(is.null(arg$max_iter), 100, arg$max_iter)
+  time <- system.time({
+    res <- notears$notears_linear(X = as.matrix(x), lambda1 = as.double(lambda), loss_type = "l2", w_threshold = as.double(w_threshold),
+                                  max_iter = as.integer(max_iter), h_tol = 1e-4, rho_max = 10)
+  })
+  A <- matrix(nrow = ncol(x), res, dimnames = list(colnames(x), colnames(x)))
+  g <- graph_from_adjacency_matrix(sign(abs(A)), diag = FALSE)
+  return(list(
+    time = time,
+    graph = as_graphnel(g),
+    coef = res
   ))
 }

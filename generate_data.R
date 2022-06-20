@@ -19,8 +19,7 @@ gen_methods <- c(
   "gmat_mh_u", 
   "randomDAG_gaus",
   "randomDAG_exp",
-  "randomDAG_gumb",
-  "randomDAG_gaus_2"
+  "randomDAG_gumb"
 )
 
 for (n in ns){

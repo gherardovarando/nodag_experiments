@@ -9,6 +9,9 @@ est_methods <- c(
   "nodag-0.3",
   "nodag-0.2" ,
   "nodag-0.1" ,
+  "notears-0.3",
+  "notears-0.2" ,
+  "notears-0.1" ,
   "tabu",
   "ges"
 )
@@ -57,8 +60,7 @@ gen_methods <- c(
   "gmat_mh_u",
   "randomDAG_gaus",
   "randomDAG_exp",
-  "randomDAG_gumb",
-  "randomDAG_gaus_2"
+  "randomDAG_gumb"
 )
 
 TABLE <- array(dim = c(15,
@@ -96,23 +98,20 @@ for (p in ps){
         gtamat <- as(gt, "graphAM")@adjMat
         gtcpdag <- pcalg::dag2cpdag(gt)
         gtamatcpdag <- as(gtcpdag, "graphAM")@adjMat
-        vn <- colnames(gtamat)
         gtsk <- sign(gtamat + t(gtamat))
         for (est in est_methods){
           if (file.exists(paste0(resbasepath, "/", est,"_",filename, ".rds"))){
             message(filename)
             results <- readRDS(file = paste0(resbasepath, "/", est,"_",filename, ".rds"))
             amat <- as(results$graph, "graphAM")@adjMat
-            ix <- sapply(vn, function(x) which(x == colnames(amat))) 
-            amat <- amat[ix,ix] ### reorder amat as gtamat
             TABLE["time", gen, est, paste0(n), paste0(p), paste0(k), r] <- ifelse(is.null(results$time), NA, results$time)  
-            tmp <- SID::structIntervDist(gtamat, amat)
-            TABLE["sid", gen, est, paste0(n), paste0(p), paste0(k), r] <- tmp$sid
-            TABLE["sid-lower", gen, est, paste0(n), paste0(p), paste0(k), r] <- tmp$sidLowerBound
-            TABLE["sid-upper", gen, est, paste0(n), paste0(p), paste0(k), r] <- tmp$sidUpperBound
-            TABLE["is-dag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'dag')
-            TABLE["is-cpdag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'cpdag')
-            TABLE["is-pdag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'pdag')
+            #tmp <- SID::structIntervDist(gtamat, amat)
+            #TABLE["sid", gen, est, paste0(n), paste0(p), paste0(k), r] <- tmp$sid
+            #TABLE["sid-lower", gen, est, paste0(n), paste0(p), paste0(k), r] <- tmp$sidLowerBound
+            #TABLE["sid-upper", gen, est, paste0(n), paste0(p), paste0(k), r] <- tmp$sidUpperBound
+            #TABLE["is-dag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'dag')
+            #TABLE["is-cpdag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'cpdag')
+            #TABLE["is-pdag", gen, est, paste0(n), paste0(p), paste0(k), r] <- isValidGraph(amat, type = 'pdag')
             sk <- sign(amat + t(amat))
             tpr <- sum(sk!=0 & gtsk!=0) / sum(gtsk!=0)
             tnr <- sum(sk==0 & gtsk==0) / sum(gtsk==0)
